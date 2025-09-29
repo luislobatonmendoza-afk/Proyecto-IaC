@@ -1,0 +1,63 @@
+- hosts: proxy
+  become: true
+  tasks:
+    - name: Instalar Nginx Proxy
+      apt:
+        name: nginx
+        state: present
+    - name: Copiar configuración
+      copy:
+        src: ../nginx.conf
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - restart nginx
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+
+- hosts: frontend
+  become: true
+  tasks:
+    - name: Instalar Docker
+      apt:
+        name: docker.io
+        state: present
+    - name: Levantar app
+      docker_container:
+        name: webapp
+        image: hashicorp/http-echo
+        state: started
+        ports:
+          - "8080:5678"
+
+- hosts: database
+  become: true
+  tasks:
+    - name: Instalar PostgreSQL
+      apt:
+        name: postgresql
+        state: present
+
+- hosts: monitoring
+  become: true
+  tasks:
+    - name: Instalar Docker
+      apt:
+        name: docker.io
+        state: present
+    - name: Levantar Prometheus
+      docker_container:
+        name: prometheus
+        image: prom/prometheus
+        state: started
+        ports:
+          - "9090:9090"
+    - name: Levantar Grafana
+      docker_container:
+        name: grafana
+        image: grafana/grafana
+        state: started
+        ports:
+          - "3000:3000"
