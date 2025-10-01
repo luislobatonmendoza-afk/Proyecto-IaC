@@ -1,4 +1,4 @@
-# Proyecto TechMarket S.A.C. – Infraestructura como Código
+# Proyecto SmartRetail S.A.C. – Infraestructura como Código
 
 ## 🚀 Objetivo
 Desplegar una arquitectura en AWS que simule la infraestructura de una empresa ficticia.  
@@ -28,3 +28,4 @@ Automatizamos todo con **Terraform + Ansible**, asegurando **seguridad, escalabi
 - Escalabilidad automática (frontends en múltiples instancias).
 - Seguridad reforzada (firewall + redes aisladas).
 - Observabilidad (prometheus + grafana).
+
