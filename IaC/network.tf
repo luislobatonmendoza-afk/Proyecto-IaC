@@ -83,7 +83,7 @@ resource "aws_security_group" "monitoring_sg" {
     cidr_blocks = ["179.7.16.124/32"]
   }
 
-  # Acceso a Prometheus desde tu IP (Puerto 9090)
+  # Acceso a Prometheus desde la IP (Puerto 9090)
   ingress {
     from_port   = 9090
     to_port     = 9090
@@ -107,3 +107,4 @@ resource "aws_security_group" "monitoring_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
