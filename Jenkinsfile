@@ -1,0 +1,78 @@
+agent {
+    label 'ansible-agent iaac'
+}
+
+environment {
+    TF_DIR = './IaC'
+    ANSIBLE_INV_DIR = './config/templates'
+    ANSIBLE_CONFIG_DIR = './config'
+}
+
+stages {
+    stage('1. Checkout Code') {
+        steps {
+            checkout scm
+        }
+    }
+
+    stage('2. Terraform Init & Plan') {
+        steps {
+            dir("${TF_DIR}") {
+                sh 'terraform init'
+                sh 'terraform plan -out=tfplan'
+            }
+        }
+    }
+
+    stage('3. Terraform Apply') {
+        steps {
+            dir("${TF_DIR}") {
+                sh 'terraform apply -auto-approve tfplan'
+            }
+        }
+    }
+
+    stage('4. Generate Ansible Inventory') {
+        steps {
+            dir("${TF_DIR}") {
+                // Genera el inventario de Ansible extrayendo las IPs generadas por Terraform
+                script {
+                    def proxy_ip = sh(returnStdout: true, script: 'terraform output -raw proxy_public_ip').trim()
+                    def frontend_ip_0 = sh(returnStdout: true, script: 'terraform output -raw frontend_public_ip_0').trim()
+                    def frontend_ip_1 = sh(returnStdout: true, script: 'terraform output -raw frontend_public_ip_1').trim()
+                    def database_ip = sh(returnStdout: true, script: 'terraform output -raw database_private_ip').trim()
+                    def grafana_ip = sh(returnStdout: true, script: 'terraform output -raw grafana_public_ip').trim()
+                    
+                    def inventory_template = readFile("${ANSIBLE_INV_DIR}/inventory.ini")
+                    
+                    def final_inventory = inventory_template
+                        .replace('IP_PROXY_PLACEHOLDER', proxy_ip)
+                        .replace('IP_FRONTEND_0_PLACEHOLDER', frontend_ip_0)
+                        .replace('IP_FRONTEND_1_PLACEHOLDER', frontend_ip_1)
+                        .replace('IP_DATABASE_PLACEHOLDER', database_ip)
+                        .replace('IP_GRAFANA_PLACEHOLDER', grafana_ip)
+                        
+
+                    writeFile file: "${ANSIBLE_CONFIG_DIR}/hosts.ini", text: final_inventory
+                }
+            }
+        }
+    }
+
+    stage('5. Ansible Deploy') {
+        steps {
+            dir("${ANSIBLE_CONFIG_DIR}") {
+                sh 'ansible-playbook -i hosts.ini playbook.yaml --private-key /home/ubuntu/.ssh/id_rsa -u ubuntu'
+            }
+        }
+    }
+    
+    stage('6. Destroy Infrastructure (Optional)') {
+        steps {
+            input message: 'Desea destruir completamente la infraestructura en AWS?', ok: 'Destruir'
+            dir("${TF_DIR}") {
+                sh 'terraform destroy -auto-approve'
+            }
+        }
+    }
+}

@@ -1,0 +1,70 @@
+jenkins:
+  systemMessage: "Proyecto SmartRetail S.A.C. – CI/CD con Terraform y Ansible (JCasC)"
+  numExecutors: 0
+
+# 1. Instalación de Plugins Requeridos
+plugins:
+  install:
+    - git@5.2.1
+    - pipeline-stage-view@2.30
+    - aws-credentials@2.2
+    - ssh-slaves@2.95.1 
+    - configuration-as-code@1.60
+    - workflow-aggregator@2.6
+    
+# 2. Credencial SSH (Conexión a Cloud)
+credentials:
+  system:
+    domain:
+      global:
+        credentials:
+          - sshUserPrivateKey:
+              scope: GLOBAL
+              id: "SMARTRETAIL-IAC-KEY" # ID de la Credencial (Usado en el Jenkinsfile)
+              username: "ubuntu" 
+              privateKeySource:
+                directEntry:
+                  # CLAVE PRIVADA (smartretail-iac-key.pem)
+                  privateKey: |
+                    -----BEGIN RSA PRIVATE KEY-----
+                    MIIEowIBAAKCAQEAvFSwzU29WtUo3LyXKuSGHkeJI0gChXwJfjfJ390dYOAKCI7r
+                    wFnegCSHWKYuDmWjrVYxjGeEN8y45Fe4C82cAKsZ3Njvi5bZkRhpPlBuqe/PZ/CL
+                    80KUPDCrSW4f2Bk58BLCXBZ8aOnHyUuVKv6kC2f5l9wslo8586R+kSBoeglWBepE
+                    cT9olEqiYFRht0X6XqMmKRDSrYbVhSHfASpd1cvGICVEBASQSuHbSfquv/mH81Pw
+                    mHaObmK1H21ykDmMJuSi4T/uY/giVf84XQrO2YwakBKuxQzgETTb/2eoAM0LqYZr
+                    Bc2P3YzwWR+wUAQlf7wobDmomqeuA33v/jk3dwIDAQABAoIBADHIgWQD5MYaCs8u
+                    2xbvibR/XHUDGAeJHklLHgYbQSTWlFBm11LlbreY8F4yr4IGxBmR608eHglSCJ3z
+                    wib8lvxmPlPu1IOlwKVmOovKXzZ0ufLT12racqzmgKDMh4ZsRLB9hPsqxoBFLBa9
+                    8BSJc3vAZG4MOY0jF0KcfQiH9JYtZXrQ5cpYuGkan6fk4J5qDW2cwkjFrmh9IFbg
+                    Iw8dnDO75BHScB2jKXUjioCS9DsjYWPnPLE7y8fIFPw+3WdSKcHtfdQ9hsQvgpqv
+                    qMS0xU0EFsP8xZ07HbqsZ4P8R/vQKpN8NxnGWmWFDVI96qfnTSmWWgvz3LwhDDLD
+                    eh/+fyECgYEA4a4K/FmO7pP05f1Vx7vveeFlgGMbZjD1Ys/Q1QVYC8PNuqwJMWG6
+                    udOt9AgKThIC6WctblEZRNxnfiAYwqpzinAzrSng+FXfTgMWTJ57LIqMThoPWM/n
+                    wVlI0mLClsVft9dEd98DTijQUG9yKHe++6KAnaLTSHa81jbH+4iTyVMCgYEA1aIT
+                    4SLiBy9mVY8zM2Ekjq4miZ1pHJk+JtAG1DSsnomCRh+MDiP709xDko2Tn8bamA5b
+                    lGsPEk9PBQuvzvTaQ9rgfKLPhNYlfx2ekfPp3QlKGgKy3Xbgvxz3acaskxe5IO8P
+                    um/TtibxbQfVpvfdSzA6e8xTvwKNvemtyOd7AM0CgYEAnpUSGylDitplKIfQEz44
+                    lUiRbpo10qVsiTbG5CmRKRM6KYZiH1UxRQs+HVDZDOsTKLfb8L0EKKNIBhS/0Wq9
+                    LfaSGYhoEZkmBUeeD9D9dNsVpHsjdaEClZcL2OqVGiUvkZuu/Ry00eNUHnFxooYi
+                    qegSwLJ+DVmCcHSmKlZaowkCgYB6ctfqJ1BexfBmAhpazMdjcLZuEmd5GOzi2kHP
+                    yBFZHYAqKVLhmAZzvMCOc8+9uQj6NuCPBX4yBHtKbRRsDzQ7yGz7g2ZmwUfkwFlv
+                    Vtso8nYiyoEzJzxSzouReWrZNLPMCLp/JjG3KkMfN2pitZeFzTL4Wnl19kTAIfyW
+                    Nvft0QKBgBneVfrtvZ3BHzYSiZYa6t7CFc64869xydNuUajlRShE0EM27HITWpjD
+                    Fv2GD2jXWk/vBcff9RuKF2pIKU0qvkpx1KpW4jM1V5ppNJip+Lxwl5xd7zad4GQ9
+                    12GYF47ElGoNlfFl1yCdSZZUCedK4tPTdkXX7npQbrtdLm96AvYl
+                    -----END RSA PRIVATE KEY-----
+
+# 3. Definición del Agente Apropiado
+nodes:
+  - permanent:
+      name: "ansible-agent"
+      description: "Agente dedicado para tareas de Terraform y Ansible"
+      remoteFS: "/home/ubuntu/jenkins" 
+      label: "ansible-agent iaac" 
+      numExecutors: 1
+      launcher:
+        ssh:
+          # IP PÚBLICA DE LA INSTANCIA nginx-proxy (34.229.50.183)
+          host: "34.229.50.183" 
+          credentialsId: "SMARTRETAIL-IAC-KEY"
+          hostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
