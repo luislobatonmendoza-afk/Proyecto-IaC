@@ -1,0 +1,15 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: instance
+    image: ubuntu:latest
+    pre_build_image: true
+provisioner:
+  name: ansible
+  playbooks:
+    converge: ../../playbook.yaml
+verifier:
+  name: ansible

@@ -1,0 +1,8 @@
+---
+- name: Verify proxy configuration
+  hosts: instance
+  gather_facts: false
+  tasks:
+    - name: Run Testinfra tests
+      community.general.testinfra:
+        test_file: test_proxy.py
